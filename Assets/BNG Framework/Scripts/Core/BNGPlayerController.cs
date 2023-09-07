@@ -11,10 +11,40 @@ namespace BNG {
         None
     }
 
+    public class GridSystem
+    {
+        public Vector3[,] Grid { get; private set; }
+
+        public GridSystem(int gridSizeX, int gridSizeZ, float cellSize)
+        {
+            Grid = new Vector3[gridSizeX, gridSizeZ];
+            // Initialize the grid positions based on cellSize and gridSize
+            // You can set positions in a loop or manually define them
+            // Example:
+            for (int x = 0; x < gridSizeX; x++)
+            {
+                for (int z = 0; z < gridSizeZ; z++)
+                {
+                    Grid[x, z] = new Vector3(x * cellSize, 0, z * cellSize);
+                }
+            }
+        }
+    }
+
+
     /// <summary>
     /// The BNGPlayerController handles basic player movement
     /// </summary>
     public class BNGPlayerController : MonoBehaviour {
+
+        [Header("Grid Settings")]
+        public int gridSizeX = 5; // Define the number of grid cells in the X direction
+        public int gridSizeZ = 5; // Define the number of grid cells in the Z direction
+        public float cellSize = 1f; // Size of each grid cell
+
+        private GridSystem grid;
+
+        private Vector2 currentGridPosition; // Current position in the grid
 
         [Header("Camera Options : ")]
 
@@ -131,65 +161,37 @@ namespace BNG {
         private Vector3 _initialPosition;
 
         void Start() {
-            characterController = GetComponentInChildren<CharacterController>();
-            playerRigid = GetComponent<Rigidbody>();
-            playerCapsule = GetComponent<CapsuleCollider>();
-            smoothLocomotion = GetComponentInChildren<SmoothLocomotion>();
+            grid = new GridSystem(gridSizeX, gridSizeZ, cellSize);
 
-            mainCamera = GameObject.FindGameObjectWithTag("MainCamera").transform;
-
-            if (characterController) {
-                _initialPosition = characterController.transform.position;
-            }
-            else if(playerRigid) {
-                _initialPosition = playerRigid.position;
-            }
-            else {
-                _initialPosition = transform.position;
-            }
-
-            playerClimbing = GetComponentInChildren<PlayerClimbing>();
+            // Set the initial grid position
+            currentGridPosition = new Vector2(gridSizeX / 2, gridSizeZ / 2);
         }
 
         void Update() {
 
-            // Sanity check for camera
-            if (mainCamera == null && Camera.main != null) {
-                mainCamera = Camera.main.transform;
-            }
+            float horizontalInput = Input.GetAxis("Horizontal");
+            float verticalInput = Input.GetAxis("Vertical");
 
-            isClimbing = playerClimbing != null && playerClimbing.GrippingAtLeastOneClimbable();
-            if (isClimbing != wasClimbing) {
-                OnClimbingChange();
-            }
+            if (horizontalInput != 0 || verticalInput != 0)
+            {
+                // Calculate the new grid position based on input
+                Vector2 newGridPosition = currentGridPosition + new Vector2(horizontalInput, verticalInput);
 
-            // Update the Character Controller's Capsule Height to match our Camera position
-            if(ResizeCharacterHeightWithCamera) {
-                UpdateCharacterHeight();
-            }
+                // Clamp the new position within the grid bounds
+                newGridPosition.x = Mathf.Clamp(newGridPosition.x, 0, gridSizeX - 1);
+                newGridPosition.y = Mathf.Clamp(newGridPosition.y, 0, gridSizeZ - 1);
 
-            // Update the position of our camera rig to account for our player's height
-            UpdateCameraRigPosition();
+                // Calculate the world position from the grid position
+                Vector3 targetPosition = grid.Grid[(int)newGridPosition.x, (int)newGridPosition.y];
 
-            // JPTODO : Testing character height
-            if(playerClimbing != null && playerClimbing.GrippingAtLeastOneClimbable() && characterController != null) {
-                characterController.height = playerClimbing.ClimbingCapsuleHeight;
-            }
+                // Move the player to the target position
+                transform.position = targetPosition;
 
-            if(playerClimbing != null && playerClimbing.GrippingAtLeastOneClimbable() && playerRigid != null) {
-                playerCapsule.height = playerClimbing.ClimbingCapsuleHeight;
-            }
-			
-            // After positioning the camera rig, we can update our main camera's height
-            UpdateCameraHeight();
-
-            CheckCharacterCollisionMove();
-
-            // Align TrackingSpace with Camera
-            if (RotateCharacterWithCamera) {
-                RotateTrackingSpaceToCamera();
+                // Update the current grid position
+                currentGridPosition = newGridPosition;
             }
         }
+    
        
         void FixedUpdate() {
 
