@@ -23,7 +23,7 @@ public class worldPositioning : MonoBehaviour
         transform.position = player.GetLocation() + new Vector3(10, 4, 0);
 
         beatInterval = 60f / 139;
-        
+
 
     }
 
@@ -38,7 +38,9 @@ public class worldPositioning : MonoBehaviour
 
 
         // Check if it's time to move on the beat
-        if (CanJumpInRange(beatInterval, .20f))
+        if (CanJumpInRange(beatInterval, .27f))
+
+
         {
             // Detect input and move the player
             if (Input.GetKeyDown(KeyCode.LeftArrow))
@@ -65,6 +67,8 @@ public class worldPositioning : MonoBehaviour
         // Update the last move time
         lastMoveTime = Time.time;
 
+
+
     }
     /// <summary>
     /// 
@@ -75,9 +79,11 @@ public class worldPositioning : MonoBehaviour
     bool CanJumpInRange(float interval, float pressRange)
     {
         float timeLine = Time.time; // change to music timeline if needed
-        
+
         float x = timeLine % interval; //calculation
         float pressRangeSide = pressRange / 2; //one side of range
-        return (x >= interval - pressRangeSide | x <= pressRangeSide);
+        return (x >= interval - pressRangeSide || x <= pressRangeSide); //muokattu
     }
 }
+
+
