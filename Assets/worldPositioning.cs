@@ -82,8 +82,10 @@ public class worldPositioning : MonoBehaviour
 
         float x = timeLine % interval; //calculation
         float pressRangeSide = pressRange / 2; //one side of range
-        return (x >= interval - pressRangeSide || x <= pressRangeSide); //muokattu
+        return (x >= interval - pressRangeSide | x <= pressRangeSide);
     }
 }
+
+
 
 

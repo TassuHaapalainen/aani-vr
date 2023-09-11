@@ -42,6 +42,8 @@ namespace BNG {
         public int gridSizeZ = 5; // Define the number of grid cells in the Z direction
         public float cellSize = 1f; // Size of each grid cell
 
+
+
         private GridSystem grid;
 
         private Vector2 currentGridPosition; // Current position in the grid
